@@ -1,0 +1,6 @@
+[submodule "website"]
+	path = website
+	url = https://github.com/drumrollhq/eak-web.git
+[submodule "game"]
+	path = game
+	url = https://github.com/drumrollhq/E.A.K.
