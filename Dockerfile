@@ -1,6 +1,13 @@
 FROM phusion/baseimage
 MAINTAINER Joe Dytrych <joe@drumrollhq.com>
 
+ENV HOME /root
+EXPOSE 80
+
+# Use baseimage-docker's init system.
+CMD ["/sbin/my_init"]
+RUN rm -rf /etc/service/sshd /etc/my_init.d/00_regen_ssh_host_keys.sh
+
 # Dependencies have dependencies.
 RUN apt-get update
 RUN apt-get install -y python-software-properties curl build-essential git fontconfig
@@ -9,13 +16,23 @@ RUN apt-get install -y python-software-properties curl build-essential git fontc
 RUN curl -sL https://deb.nodesource.com/setup | bash -
 RUN apt-get install -y nodejs
 
-# ffmpeg:
+# ffmpeg & nginx:
 RUN add-apt-repository ppa:jon-severinsson/ffmpeg
+RUN add-apt-repository ppa:nginx/stable
 RUN apt-get update
-RUN apt-get install -y ffmpeg
+RUN apt-get install -y ffmpeg nginx
 
 # Build tools:
 RUN npm install -g gulp bower
+
+# Web Server:
+COPY ./conf/nginx/nginx.conf /etc/nginx/nginx.conf
+RUN rm /etc/nginx/sites-enabled/default
+COPY ./conf/nginx/site.conf /etc/nginx/sites-enabled/default
+
+# Services
+RUN mkdir /etc/service/nginx
+COPY ./conf/services/nginx.sh /etc/service/nginx/run
 
 # Copy over files, etc.
 ADD ./ /build_tmp
@@ -40,3 +57,11 @@ RUN npm install
 RUN bower --allow-root install
 RUN gulp optimize
 RUN mv /build_tmp/website/public /srv/website
+
+# Merged serve folder
+RUN mkdir /src/merged/
+RUN cp -r /srv/game/* /srv/merged
+RUN cp -r /srv/website/* /srv/merged
+
+# Clean Up
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
