@@ -19,8 +19,6 @@ RUN npm install -g gulp bower
 
 # Copy over files, etc.
 ADD ./ /build_tmp
-WORKDIR /build_tmp
-RUN git submodule update --init --recursive
 
 # Game
 WORKDIR /build_tmp/game
