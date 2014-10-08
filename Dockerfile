@@ -35,7 +35,12 @@ RUN mkdir /etc/service/nginx
 COPY ./conf/services/nginx.sh /etc/service/nginx/run
 
 # Copy over files, etc.
-ADD ./ /build_tmp
+RUN mkdir /build_tmp
+ADD ./game /build_tmp/game
+ADD ./website /build_tmp/website
+
+# Git confuses bower somehow?
+RUN rm -rf /build_tmp/**/.git
 
 # Game
 WORKDIR /build_tmp/game
@@ -59,7 +64,7 @@ RUN gulp optimize
 RUN mv /build_tmp/website/public /srv/website
 
 # Merged serve folder
-RUN mkdir /src/merged/
+RUN mkdir /srv/merged/
 RUN cp -r /srv/game/* /srv/merged
 RUN cp -r /srv/website/* /srv/merged
 
