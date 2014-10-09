@@ -33,11 +33,13 @@ COPY ./conf/nginx/site.conf /etc/nginx/sites-enabled/default
 # Services
 RUN mkdir /etc/service/nginx
 COPY ./conf/services/nginx.sh /etc/service/nginx/run
+COPY ./conf/services/node.sh /etc/service/node/run
 
 # Copy over files, etc.
 RUN mkdir /build_tmp
 ADD ./game /build_tmp/game
 ADD ./website /build_tmp/website
+ADD ./server /build_tmp/server
 
 # Git confuses bower somehow?
 RUN rm -rf /build_tmp/**/.git
@@ -62,6 +64,15 @@ RUN npm install
 RUN bower --allow-root install
 RUN gulp optimize
 RUN mv /build_tmp/website/public /srv/website
+
+# Server
+WORKDIR /build_tmp/server
+RUN npm install
+RUN mv /build_tmp/server /srv/server
+ENV NODE_ENV production
+ENV REDIS_DB 0
+ENV PORT 3000
+ENV EAK_STATIC ../merged
 
 # Merged serve folder
 RUN mkdir /srv/merged/
